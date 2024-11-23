@@ -68,6 +68,8 @@ HYPRE_BigInt hypre_map27( HYPRE_BigInt  ix, HYPRE_BigInt  iy, HYPRE_BigInt  iz, 
 #endif
 #define SECOND_TIME 0
 
+hypre_int ITER=1;
+
 hypre_int
 main( hypre_int argc,
       char *argv[] )
@@ -167,6 +169,15 @@ main( hypre_int argc,
       else if ( strcmp(argv[arg_index], "-exec_device") == 0 )
       {
          default_exec_policy = HYPRE_EXEC_DEVICE;
+      }
+   }
+
+   for (arg_index = 1; arg_index < argc; arg_index ++)
+   {
+      if ( strcmp(argv[arg_index], "-iter") == 0 )
+      {
+	 arg_index++;
+         ITER=atoi(argv[arg_index++]);
       }
    }
 
@@ -745,10 +756,29 @@ main( hypre_int argc,
 #ifdef USE_CALIPER
       CALI_MARK_BEGIN("Solve");
 #endif
+      
+      HYPRE_IJVector ij_xcopy;
+      HYPRE_IJVectorCreate(comm, first_local_col, last_local_col, &ij_xcopy);
+      HYPRE_IJVectorSetObjectType(ij_xcopy, HYPRE_PARCSR);
+      HYPRE_IJVectorInitialize(ij_xcopy);
+      HYPRE_IJVectorAssemble(ij_xcopy);
+
+      HYPRE_ParVector par_xcopy;
+      HYPRE_IJVectorGetObject(ij_xcopy, (void **) &par_xcopy);
+      HYPRE_ParVectorCopy(x, par_xcopy);
+
+      int N = ITER;
+
       hypre_BeginTiming(time_index);
 
-      HYPRE_GMRESSolve (pcg_solver, (HYPRE_Matrix)parcsr_A, (HYPRE_Vector)b, (HYPRE_Vector)x);
+      for (int i = 0; i < N; i++)
+      {
+         HYPRE_ParVectorCopy(par_xcopy, x);
+         HYPRE_GMRESSolve(pcg_solver, (HYPRE_Matrix)parcsr_A, (HYPRE_Vector)b, (HYPRE_Vector)x);
+      }
 
+      // HYPRE_GMRESSolve (pcg_solver, (HYPRE_Matrix)parcsr_A, (HYPRE_Vector)b, (HYPRE_Vector)x);
+ 
       hypre_MPI_Barrier(comm);
       hypre_EndTiming(time_index);
 #ifdef USE_CALIPER
