@@ -6,7 +6,6 @@
 #SBATCH -J amg
 #SBATCH -t 00:30:00
 #SBATCH -A csc569
-#SBATCH --gpu-bind=none
 #SBATCH --output /lustre/orion/csc569/scratch/keshprad/perfvar/AMG2023_logs/64nodes/%x-%j/output-AMG2023.log
 #SBATCH --error /lustre/orion/csc569/scratch/keshprad/perfvar/AMG2023_logs/64nodes/%x-%j/error-AMG2023.log
 # Run like: sbatch frontier/amg_sbatch_64nodes.sh
