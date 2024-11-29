@@ -2,7 +2,6 @@
 #SBATCH -N 64
 #SBATCH -n 512
 #SBATCH -q normal
-#SBATCH --gpus-per-node 8
 #SBATCH -J amg
 #SBATCH -t 00:30:00
 #SBATCH -A csc569
